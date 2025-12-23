@@ -17,7 +17,7 @@ const JEWELRY_QUERY = `
 `;
 
 export default async function CatalogPage() {
-  const isDraft = isDraftMode();
+  const { isEnabled: isDraft } = draftMode();
 
   // Ejecuta la consulta para obtener la lista de joyas
   // Nota: Las API de DatoCMS convierten los nombres de campos snake_case a camelCase (ej: nombre_del_producto -> nombreDelProducto)
