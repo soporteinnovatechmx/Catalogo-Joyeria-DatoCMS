@@ -1,49 +1,81 @@
 import { isDraftMode } from 'next/dist/client/components/app-router';
 import { executeQuery } from '@/lib/datocms/executeQuery';
 
-// Define tu consulta GraphQL (asumiendo que tienes un modelo llamado 'AllPages' o similar)
-const PAGE_QUERY = `
-  query PageQuery {
-    page(filter: {slug: {eq: "home"}}) {
-      title
-      content {
-        value
-      }
-    }
-    _site {
-      favicon: faviconMetaTags {
-        attributes
-        content
-        tag
+// 1. CONSULTA: Busca todos los registros del modelo "Joya" con los nombres de campos correctos
+const JEWELRY_QUERY = `
+  query AllJewelryQuery {
+    allJoyas { // Pluralización del modelo 'Joya'
+      id
+      nombreDelProducto
+      precioMxn 
+      imagenes { // Usando 'imagenes' como galería
+        url
+        alt
       }
     }
   }
 `;
 
-export default async function IndexPage() {
+export default async function CatalogPage() {
   const isDraft = isDraftMode();
 
-  const { page } = await executeQuery(PAGE_QUERY, {
+  // Ejecuta la consulta para obtener la lista de joyas
+  // Nota: Las API de DatoCMS convierten los nombres de campos snake_case a camelCase (ej: nombre_del_producto -> nombreDelProducto)
+  const { allJoyas } = await executeQuery(JEWELRY_QUERY, {
     isDraft,
   });
 
-  if (!page) {
-    // Muestra un mensaje si no encuentra el contenido en DatoCMS
+  if (!allJoyas || allJoyas.length === 0) {
+    // 2. CASO: No hay joyas
     return (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h1>¡El sitio funciona!</h1>
-            <p>El código se conectó a DatoCMS, pero no se encontró la página con el slug 'home'.</p>
-            <p>Crea una página en DatoCMS con el slug "home" o ajusta el código.</p>
+        <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#222', color: '#fff' }}>
+            <h1>Catálogo Vacío</h1>
+            <p>El sitio está conectado a DatoCMS, pero no se encontraron registros en el modelo 'Joya'.</p>
+            <p>Asegúrate de que los registros estén "Publicados" en DatoCMS.</p>
         </div>
     );
   }
 
-  // Si encuentra la página, muestra el título
+  // 3. VISTA: Muestra el Catálogo
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>{page.title}</h1>
-      {/* Aquí podrías renderizar el contenido usando un componente de bloques */}
-      <p>¡El sitio está en línea y conectado a DatoCMS!</p>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+      <h1 style={{ textAlign: 'center', color: '#FFD700', marginBottom: '30px' }}>Nuestro Catálogo de Joyería</h1>
+      <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+          gap: '25px' 
+      }}>
+        {allJoyas.map((joya) => (
+          <div 
+            key={joya.id} 
+            style={{ 
+                border: '1px solid #444', 
+                borderRadius: '8px', 
+                padding: '15px', 
+                backgroundColor: '#333', 
+                color: '#fff',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {/* Imagen de la Joya (toma la primera imagen si es una galería) */}
+            {joya.imagenes && joya.imagenes.length > 0 && (
+              <img 
+                src={joya.imagenes[0].url} // Tomamos la primera imagen
+                alt={joya.imagenes[0].alt || joya.nombreDelProducto} 
+                style={{ width: '100%', height: 'auto', borderRadius: '4px', marginBottom: '15px' }} 
+              />
+            )}
+            
+            {/* Nombre del Producto */}
+            <h2 style={{ fontSize: '1.3em', margin: '10px 0', color: '#FFD700' }}>{joya.nombreDelProducto}</h2>
+            
+            {/* Precio */}
+            <p style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#fff' }}>
+                Precio: **MXN ${joya.precioMxn ? joya.precioMxn.toFixed(2) : 'N/A'}**
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
