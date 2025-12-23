@@ -1,4 +1,4 @@
-import { isDraftMode } from 'next/dist/client/components/app-router';
+import { draftMode } from 'next/headers';
 import { executeQuery } from '@/lib/datocms/executeQuery';
 
 // 1. CONSULTA: Busca todos los registros del modelo "Joya" con los nombres de campos correctos
