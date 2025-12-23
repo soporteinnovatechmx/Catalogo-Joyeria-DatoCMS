@@ -4,11 +4,11 @@ import { executeQuery } from '@/lib/datocms/executeQuery';
 // 1. CONSULTA: Busca todos los registros del modelo "Joya" con los nombres de campos correctos
 const JEWELRY_QUERY = `
   query AllJewelryQuery {
-    allJoyas { // Pluralización del modelo 'Joya'
+    allJoyas { 
       id
       nombreDelProducto
       precioMxn 
-      imagenes { // Usando 'imagenes' como galería
+      imagenes { 
         url
         alt
       }
